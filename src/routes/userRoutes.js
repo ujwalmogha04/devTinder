@@ -1,6 +1,8 @@
 const { Router } = require("express");
 const { userModel } = require("../db");
-const bcrypt = require("bcryptjs")
+const bcrypt = require("bcryptjs");
+const userMiddleware = require("../middlewares/userMiddleware");
+const jwt = require("jsonwebtoken");
 const userRouter = Router();
 
 userRouter.post("/signup", async (req, res) => {
@@ -39,7 +41,7 @@ userRouter.post("/signin", async (req, res) => {
         const existingUser = await userModel.findOne({ username });
 
         if (!existingUser) {
-            return res.status(409).json({
+            return res.status(404).json({
                 message: "user doesn't exists signup first"
             })
         }
@@ -52,19 +54,27 @@ userRouter.post("/signin", async (req, res) => {
             });
         }
 
-        return res.status(201).json({
-            message: "signin sucessfully"
+        
+        const token = jwt.sign({
+                 id : existingUser._id
+        } , process.env.JWT_SECRET , {
+            expiresIn : "1h"
+        });
+
+        return res.status(200).json({
+            message: "signin sucessfully",
+            token
         })
 
     }
     catch (err) {
         return res.status(500).json({
-            message: "Internal server error"
+            message: "Internal server error" + err.message
         })
     }
 })
 
-userRouter.patch("/update", async (req, res) => {
+userRouter.patch("/update", userMiddleware , async (req, res) => {
     const { name, password, username } = req.body;
     try {
         const existingUser = await userModel.findOne({ username });
@@ -96,7 +106,7 @@ userRouter.patch("/update", async (req, res) => {
     }
 })
 
-userRouter.delete("/delete", async (req, res) => {
+userRouter.delete("/delete", userMiddleware ,  async (req, res) => {
     const { username } = req.body;
 
     try {
