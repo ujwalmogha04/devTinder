@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
+const {userModel} = require("../config/db")
 
-function userMiddleware(req, res, next) {
+
+async function userMiddleware (req, res, next) {
     const authorization = req.headers.authorization;
 
     if(!authorization || !authorization.startsWith("Bearer ")){
@@ -9,7 +11,7 @@ function userMiddleware(req, res, next) {
         })
     }
  
-    const token = authorization.split(" ")[1];  
+    const token = authorization.split(" ")[1]; 
 
     try {
         
@@ -21,7 +23,15 @@ function userMiddleware(req, res, next) {
             })
         }
 
-        req.userId = decoded.id;
+    const user = await userModel.findById(decoded.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    req.user = user;        
+    req.userId = user._id;
+        
         next();
 }
 

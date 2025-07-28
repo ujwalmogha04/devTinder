@@ -11,6 +11,7 @@ const userSignInSchema = z.object({
     username : z.string().email({message : "Inavlid email format "}),
     password : z.string().min(4)
 })
+
 module.exports = {
     userSignUpSchema,
     userSignInSchema

@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { userModel } = require("../db");
+const { userModel } = require("../config/db");
 const bcrypt = require("bcryptjs");
 const userMiddleware = require("../middlewares/userMiddleware");
 const jwt = require("jsonwebtoken");
@@ -160,6 +160,12 @@ userRouter.delete("/delete", userMiddleware ,  async (req, res) => {
             message: "Internal server error" 
         })
     }
+})
+
+userRouter.post("/logout" , (req , res) =>{
+    return res.status(200).json({
+        message: "Logout successful. Please delete the token from the client side."
+    });
 })
 
 module.exports = userRouter;
